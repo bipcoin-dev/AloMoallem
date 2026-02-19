@@ -11,13 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Email sender: افتراضيًا يكتب الإيميلات كملفات داخل App_Data/emails (استبدله بمرسل حقيقي في الإنتاج)
+// Email sender
 builder.Services.AddSingleton<IEmailSender, FileEmailSender>();
 
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddSignalR();
 
-// Compression (helps perf)
+// Compression
 builder.Services.AddResponseCompression(o =>
 {
     o.EnableForHttps = true;
@@ -31,7 +31,7 @@ builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = Compre
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Auth/Identity (values configurable per environment)
+// Identity
 builder.Services
     .AddIdentity<AppUser, IdentityRole>(options =>
     {
@@ -39,12 +39,12 @@ builder.Services
         options.Password.RequireNonAlphanumeric = builder.Configuration.GetValue("Auth:RequireNonAlphanumeric", false);
         options.User.RequireUniqueEmail = true;
 
-        // ⚠️ لو ما عندك إرسال بريد حقيقي، خلّيه false في الإنتاج حتى لا يتعطل تسجيل الدخول.
         options.SignIn.RequireConfirmedAccount = builder.Configuration.GetValue("Auth:RequireConfirmedAccount", false);
 
         options.Lockout.AllowedForNewUsers = true;
         options.Lockout.MaxFailedAccessAttempts = builder.Configuration.GetValue("Auth:MaxFailedAccessAttempts", 8);
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(builder.Configuration.GetValue("Auth:LockoutMinutes", 10));
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(
+            builder.Configuration.GetValue("Auth:LockoutMinutes", 10));
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
@@ -54,18 +54,20 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromDays(builder.Configuration.GetValue("Auth:CookieDays", 14));
+    options.ExpireTimeSpan = TimeSpan.FromDays(
+        builder.Configuration.GetValue("Auth:CookieDays", 14));
 });
 
-// Health checks
-builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
+// ✅ Health checks (بدون DbContextCheck)
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// If behind reverse proxy (Nginx/IIS/Cloudflare)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto
 });
 
 if (!app.Environment.IsDevelopment())
@@ -74,25 +76,25 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Basic security headers (lightweight)
+// Security headers
 app.Use(async (ctx, next) =>
 {
     ctx.Response.Headers.TryAdd("X-Content-Type-Options", "nosniff");
     ctx.Response.Headers.TryAdd("X-Frame-Options", "SAMEORIGIN");
     ctx.Response.Headers.TryAdd("Referrer-Policy", "strict-origin-when-cross-origin");
-    ctx.Response.Headers.TryAdd("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+    ctx.Response.Headers.TryAdd("Permissions-Policy",
+        "geolocation=(), microphone=(), camera=()");
     await next();
 });
 
 app.UseHttpsRedirection();
 
-// Static files caching
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        // Cache static assets for 7 days
-        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=604800";
+        ctx.Context.Response.Headers["Cache-Control"] =
+            "public,max-age=604800";
     }
 });
 
@@ -104,7 +106,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // DB init + seed
-Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "App_Data"));
+Directory.CreateDirectory(
+    Path.Combine(app.Environment.ContentRootPath, "App_Data"));
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
