@@ -1,10 +1,10 @@
 ﻿# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /app
 
 COPY . .
-RUN dotnet restore
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet restore AloMoallem.Web.csproj
+RUN dotnet publish AloMoallem.Web.csproj -c Release -o /app/publish --no-restore
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
