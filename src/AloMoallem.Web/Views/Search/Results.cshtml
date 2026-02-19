@@ -1,0 +1,173 @@
+@model List<AloMoallem.Web.Models.ArtisanProfile>
+@using AloMoallem.Web.Controllers
+@using AloMoallem.Web.Models
+@{
+  var govs = ViewBag.Governorates as List<Governorate> ?? new();
+  var total = (int)(ViewBag.Total ?? 0);
+  var page = (int)(ViewBag.Page ?? 1);
+  var pageSize = (int)(ViewBag.PageSize ?? 12);
+  var qvm = ViewBag.Query as SearchVm ?? new SearchVm();
+  var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+}
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">نتائج البحث</h1>
+      <div class="small-text">تم العثور على <b>@total</b> مزوّد خدمة</div>
+    </div>
+
+    <form class="d-flex gap-2" method="get" action="/Search/Results">
+      <input class="form-control" style="min-width:260px" name="Q" value="@qvm.Q" placeholder="ابحث عن كهربائي، سباك..." />
+      <button class="btn btn-primary">بحث</button>
+    </form>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-3">
+      <div class="card p-3 filter-sidebar" data-motion="slide-up">
+        <div class="fw-bold mb-2">فلترة</div>
+
+        <form method="get" action="/Search/Results" id="filterForm">
+          <input type="hidden" name="Q" value="@qvm.Q" />
+          <input type="hidden" name="Page" value="1" />
+
+          <div class="mb-3">
+            <label class="form-label">المحافظة</label>
+            <select class="form-select" name="GovernorateId" id="govSelect">
+              <option value="">الكل</option>
+              @foreach (var g in govs)
+              {
+                <option value="@g.Id" selected="@(qvm.GovernorateId==g.Id)">@g.Name</option>
+              }
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">الحي / الريف</label>
+            <select class="form-select" name="NeighborhoodId" id="neighSelect" disabled>
+              <option value="">الكل</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">الترتيب</label>
+            <select class="form-select" name="Sort">
+              <option value="" selected="@(string.IsNullOrWhiteSpace(qvm.Sort))">الأفضل</option>
+              <option value="rating" selected="@(qvm.Sort=="rating")">الأعلى تقييماً</option>
+              <option value="new" selected="@(qvm.Sort=="new")">الأحدث</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">أقل تقييم</label>
+            <select class="form-select" name="MinRating">
+              <option value="" selected="@(qvm.MinRating is null)">الكل</option>
+              <option value="4" selected="@(qvm.MinRating==4)">4+</option>
+              <option value="4.5" selected="@(qvm.MinRating==4.5)">4.5+</option>
+              <option value="4.8" selected="@(qvm.MinRating==4.8)">4.8+</option>
+            </select>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" value="true" name="AvailableNow" id="availCheck" checked="@(qvm.AvailableNow==true)">
+            <label class="form-check-label" for="availCheck">
+              متاح الآن فقط
+            </label>
+          </div>
+
+          <button class="btn btn-outline-primary w-100">تطبيق</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-9">
+      @if (!Model.Any())
+      {
+        @await Html.PartialAsync("Components/_EmptyState", "لا توجد نتائج حالياً")
+      }
+      else
+      {
+        <div class="row g-4" data-stagger="70">
+          @foreach (var a in Model)
+          {
+            <div class="col-12 col-md-6">
+              <div class="card p-4 h-100" data-motion="slide-up">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                  <div>
+                    <div class="fw-bold">@a.DisplayName</div>
+                    @{
+                      var ps = (a.ProfessionLinks?.Select(x => x.Profession?.Name).Where(x => !string.IsNullOrWhiteSpace(x))
+                          ?? Enumerable.Empty<string?>())
+                        .Select(x => x!)
+                        .DefaultIfEmpty(a.Profession?.Name ?? "")
+                        .Distinct()
+                        .ToList();
+                    }
+                    <div class="small-text">@string.Join(" • ", ps) • @a.Governorate.Name / @a.Neighborhood.Name</div>
+                  </div>
+                  <div class="text-end">
+                    <div class="small-text">⭐ @a.Rating</div>
+                    @if (a.AvailableNow)
+                    {
+                      <span class="badge text-bg-success">متاح الآن</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="small-text mt-2" style="min-height:44px;">@a.About</div>
+
+                <div class="d-flex gap-2 mt-3">
+                  <a class="btn btn-primary flex-grow-1" href="/Artisans/Profile/@a.Id">عرض الملف</a>
+                  <a class="btn btn-outline-primary" href="/chat/@a.UserId" title="مراسلة داخل المنصة">💬</a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (totalPages > 1)
+        {
+          <nav class="mt-4" aria-label="pagination">
+            <ul class="pagination justify-content-center">
+              @for (int i = 1; i <= totalPages; i++)
+              {
+                <li class="page-item @(i==page ? "active" : "")">
+                  <a class="page-link" href="@Url.Action("Results","Search", new { Q=qvm.Q, GovernorateId=qvm.GovernorateId, NeighborhoodId=qvm.NeighborhoodId, AvailableNow=qvm.AvailableNow, MinRating=qvm.MinRating, Sort=qvm.Sort, Page=i })">@i</a>
+                </li>
+              }
+            </ul>
+          </nav>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+(async function(){
+  const gov = document.getElementById('govSelect');
+  const neigh = document.getElementById('neighSelect');
+  const selectedGov = "@(qvm.GovernorateId ?? 0)";
+  const selectedNeigh = "@(qvm.NeighborhoodId ?? 0)";
+
+  async function loadNeigh(gid){
+    neigh.innerHTML = '<option value="">الكل</option>';
+    neigh.disabled = !gid || gid === "0";
+    if(neigh.disabled) return;
+
+    const res = await fetch(`/api/locations/neighborhoods?governorateId=${gid}`);
+    const list = await res.json();
+    for(const n of list){
+      const opt = document.createElement('option');
+      opt.value = n.id;
+      opt.textContent = n.name;
+      if(String(n.id) === String(selectedNeigh)) opt.selected = true;
+      neigh.appendChild(opt);
+    }
+  }
+
+  if(selectedGov && selectedGov !== "0") await loadNeigh(selectedGov);
+  gov.addEventListener('change', ()=> loadNeigh(gov.value));
+})();
+</script>

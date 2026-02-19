@@ -1,0 +1,9 @@
+@use "../tokens" as t;
+
+.card{
+  border:none;
+  border-radius:t.$radius;
+  box-shadow:t.$shadow-sm;
+  transition:t.$transition;
+  &:hover{ box-shadow:t.$shadow-md; transform:translateY(-3px); }
+}

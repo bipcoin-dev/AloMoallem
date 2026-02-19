@@ -1,0 +1,32 @@
+@model List<AloMoallem.Web.Models.Conversation>
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">المحادثات</h1>
+    <a class="btn btn-outline-primary" href="/">الرئيسية</a>
+  </div>
+
+  @if (!Model.Any())
+  {
+    @await Html.PartialAsync("Components/_EmptyState", "لا توجد محادثات بعد")
+  }
+  else
+  {
+    <div class="row g-3" data-stagger="70">
+      @foreach (var c in Model)
+      {
+        <div class="col-12">
+          <div class="card p-3" data-motion="slide-up">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="fw-bold">محادثة</div>
+                <div class="small-text">آخر تحديث: @c.UpdatedAtUtc.ToLocalTime()</div>
+              </div>
+              <a class="btn btn-primary" href="/chat/@(User.IsInRole("Artisan") ? c.CustomerUserId : c.ArtisanUserId)">فتح</a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

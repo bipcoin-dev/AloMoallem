@@ -1,0 +1,30 @@
+/* Mu3allem Design Tokens (SCSS)
+   المصدر الرئيسي للألوان/الخطوط/الظلال. */
+$color-primary: #F97316;
+$color-primary-600: #EA580C;
+$color-secondary: #0F172A;
+
+$neutral-900: #0F172A;
+$neutral-700: #334155;
+$neutral-500: #64748B;
+$neutral-200: #E2E8F0;
+$neutral-100: #F1F5F9;
+$bg: #F8FAFC;
+$white: #FFFFFF;
+
+$radius: 16px;
+$radius-sm: 10px;
+
+$shadow-sm: 0 2px 8px rgba(15,23,42,.05);
+$shadow-md: 0 6px 20px rgba(15,23,42,.08);
+$shadow-lg: 0 12px 40px rgba(15,23,42,.12);
+
+$transition: all .25s ease;
+
+$font-family: 'Cairo', 'Tajawal', sans-serif;
+
+$h1: 32px;
+$h2: 24px;
+$h3: 20px;
+$body: 16px;
+$small: 14px;

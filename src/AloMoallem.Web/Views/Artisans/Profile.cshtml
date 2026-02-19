@@ -1,0 +1,92 @@
+@model AloMoallem.Web.Models.ArtisanProfile
+
+@{
+  var profNames = (Model.ProfessionLinks?.Select(x => x.Profession?.Name).Where(x => !string.IsNullOrWhiteSpace(x))
+      ?? Enumerable.Empty<string?>())
+    .Select(x => x!)
+    .DefaultIfEmpty(Model.Profession?.Name ?? "")
+    .Distinct()
+    .ToList();
+}
+
+<div class="container mt-5" data-motion="fade">
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <div class="card p-4" data-motion="slide-up">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:64px;height:64px;border-radius:18px; background:var(--neutral-100); display:flex; align-items:center; justify-content:center; font-size:28px;">
+            👷
+          </div>
+          <div>
+            <div class="h5 mb-1">@Model.DisplayName</div>
+            <div class="small-text">@string.Join(" • ", profNames) • @Model.Governorate.Name / @Model.Neighborhood.Name</div>
+            <div class="small-text mt-1">⭐ @Model.Rating • @Model.CompletedJobs طلب مكتمل</div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          @if (Model.IsVerified)
+          {
+            <span class="badge text-bg-primary">موثّق</span>
+          }
+          @if (Model.AvailableNow)
+          {
+            <span class="badge text-bg-success">متاح الآن</span>
+          }
+          @foreach (var pn in profNames.Take(4))
+          {
+            if(!string.IsNullOrWhiteSpace(pn))
+            {
+              <span class="badge text-bg-light" style="border:1px solid var(--neutral-200); color:var(--neutral-700);">@pn</span>
+            }
+          }
+        </div>
+
+        <hr/>
+
+        <div class="small-text mb-2">رقم التواصل</div>
+        <div class="fw-bold">@Model.PhoneNumberPublic</div>
+
+        <div class="d-grid gap-2 mt-3">
+          <a class="btn btn-primary" href="/chat/@Model.UserId">💬 مراسلة داخل المنصة</a>
+          @if (!string.IsNullOrWhiteSpace(Model.PhoneNumberPublic))
+          {
+            <a class="btn btn-outline-primary" href="tel:@Model.PhoneNumberPublic">📞 اتصال</a>
+            <a class="btn btn-outline-primary" target="_blank" href="https://wa.me/@(new string((Model.PhoneNumberPublic ?? "").Where(char.IsDigit).ToArray()))">🟢 واتساب</a>
+          }
+        </div>
+
+        <div class="small-text mt-3">يفضّل التواصل عبر المنصة للحفاظ على الخصوصية.</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+      <div class="card p-4 mb-4" data-motion="slide-up">
+        <h2 class="h5 mb-2">نبذة</h2>
+        <div class="small-text">@Model.About</div>
+      </div>
+
+      <div class="card p-4" data-motion="slide-up">
+        <h2 class="h5 mb-3">صور الأعمال</h2>
+
+        @if (Model.WorkPhotos == null || Model.WorkPhotos.Count == 0)
+        {
+          <div class="text-muted">لا يوجد صور أعمال بعد.</div>
+        }
+        else
+        {
+          <div class="row g-3" data-stagger="60">
+            @foreach (var p in Model.WorkPhotos)
+            {
+              <div class="col-6 col-md-4">
+                <div class="card p-0 overflow-hidden" data-motion="scale">
+                  <img src="@p.Url" alt="work" style="width:100%; height:160px; object-fit:cover;" loading="lazy"/>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

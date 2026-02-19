@@ -1,0 +1,165 @@
+@model AloMoallem.Web.Controllers.RegisterVm
+@using AloMoallem.Web.Models
+@{
+    var profs = ViewBag.Professions as List<Profession> ?? new();
+    var govs = ViewBag.Governorates as List<Governorate> ?? new();
+}
+
+<h1 class="h4 mb-3">إنشاء حساب</h1>
+
+<form method="post" enctype="multipart/form-data" class="card border-0 shadow-sm p-3" style="max-width:900px;">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <label class="form-label">الإيميل</label>
+            <input class="form-control" asp-for="Email" />
+        </div>
+
+        <div class="col-12 col-md-6">
+            <label class="form-label">كلمة المرور</label>
+            <input class="form-control" asp-for="Password" type="password" />
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">نوع الحساب</label>
+            <select class="form-select" asp-for="AccountType" id="accountType">
+                <option value="Customer">زبون</option>
+                <option value="Artisan">حرفي</option>
+            </select>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">المحافظة</label>
+            <select class="form-select" asp-for="GovernorateId" id="govSelect" required>
+                <option value="">اختر المحافظة</option>
+                @foreach (var g in govs)
+                {
+                    <option value="@g.Id">@g.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">الحي / الريف</label>
+            <select class="form-select" asp-for="NeighborhoodId" id="neighSelect" required disabled>
+                <option value="">اختر أولاً المحافظة</option>
+            </select>
+        </div>
+
+        <!-- Customer section -->
+        <div class="col-12" id="customerSection">
+            <div class="p-3 rounded-4 bg-soft border">
+                <div class="fw-bold mb-2">معلومات الزبون</div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">الاسم الكامل</label>
+                        <input class="form-control" asp-for="CustomerFullName" placeholder="مثال: أحمد خالد" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="form-text mt-4 pt-2 text-muted">رح تظهر هالمعلومات لتسهيل التواصل.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artisan section -->
+        <div class="col-12 d-none" id="artisanSection">
+            <div class="p-3 rounded-4 bg-soft border">
+                <div class="fw-bold mb-2">معلومات الحرفي</div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">الاسم المعروض</label>
+                        <input class="form-control" asp-for="DisplayName" placeholder="مثال: محمد العلي" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">رقم تواصل</label>
+                        <input class="form-control" asp-for="PhoneNumberPublic" placeholder="+963 ..." />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">المهن (اختر واحدة أو أكثر)</label>
+                        <div class="p-2 border rounded-4" style="max-height:220px; overflow:auto; background:var(--white);">
+                            <div class="row g-2">
+                                @foreach (var p in profs)
+                                {
+                                    var isChecked = (Model.ProfessionIds?.Contains(p.Id) ?? false);
+                                    <div class="col-12 col-md-6">
+                                        <label class="chip-check w-100">
+                                            <input type="checkbox" name="ProfessionIds" value="@p.Id" @(isChecked ? "checked" : "") />
+                                            <span class="chip">@p.Name</span>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-danger small mt-1">@Html.ValidationMessageFor(m => m.ProfessionIds)</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">صورة شخصية (اختياري)</label>
+                        <input class="form-control" type="file" name="avatar" accept="image/*" />
+                        <div class="form-text">يفضّل صورة واضحة لتزيد الثقة.</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="form-text mt-4 pt-2 text-muted">بعد التسجيل تقدر تعدّل ملفك وترفع صور أعمال من لوحة الحرفي.</div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">نبذة</label>
+                        <textarea class="form-control" asp-for="About" rows="3" placeholder="خبرة… خدمات…"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-danger mt-2">@Html.ValidationSummary()</div>
+
+    <button class="btn btn-primary mt-3 w-100">إنشاء الحساب</button>
+
+    <div class="text-muted small mt-2">بعد التسجيل لازم تأكيد الإيميل قبل تسجيل الدخول (نسخة تطوير: الإيميل ضمن App_Data/emails).</div>
+</form>
+
+<script>
+(function(){
+  const accountType = document.getElementById('accountType');
+  const customerSection = document.getElementById('customerSection');
+  const artisanSection = document.getElementById('artisanSection');
+
+  function syncSections(){
+    const isArtisan = accountType.value === 'Artisan';
+    artisanSection.classList.toggle('d-none', !isArtisan);
+    customerSection.classList.toggle('d-none', isArtisan);
+  }
+  accountType.addEventListener('change', syncSections);
+  syncSections();
+
+  const gov = document.getElementById('govSelect');
+  const neigh = document.getElementById('neighSelect');
+
+  async function loadNeighborhoods(govId){
+    neigh.innerHTML = '<option value="">جاري التحميل…</option>';
+    neigh.disabled = true;
+    if(!govId){ 
+      neigh.innerHTML = '<option value="">اختر أولاً المحافظة</option>';
+      return;
+    }
+    const res = await fetch(`/api/locations/neighborhoods?governorateId=${govId}`);
+    const list = await res.json();
+    neigh.innerHTML = '<option value="">اختر الحي / الريف</option>';
+    for(const n of list){
+      const opt = document.createElement('option');
+      opt.value = n.id;
+      opt.textContent = n.name;
+      neigh.appendChild(opt);
+    }
+    neigh.disabled = false;
+  }
+
+  gov.addEventListener('change', ()=> loadNeighborhoods(gov.value));
+  // لو فيه قيمة من السيرفر (رجوع بعد خطأ Validation)
+  if(gov.value){ loadNeighborhoods(gov.value); }
+})();
+</script>

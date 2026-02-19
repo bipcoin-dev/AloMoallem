@@ -1,0 +1,48 @@
+@model AloMoallem.Web.Controllers.ProfessionDetailsVm
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">@Model.Profession.Icon @Model.Profession.Name</h1>
+      <div class="small-text">اختر حرفي وتواصل معه مباشرة.</div>
+    </div>
+    <a class="btn btn-outline-primary" href="/Search/Results?Q=@Model.Profession.Name">بحث داخل @Model.Profession.Name</a>
+  </div>
+
+  @if (Model.Artisans == null || Model.Artisans.Count == 0)
+  {
+    @await Html.PartialAsync("Components/_EmptyState", "لا يوجد حرفيين ضمن هذه المهنة حالياً")
+  }
+  else
+  {
+    <div class="row g-4" data-stagger="70">
+      @foreach (var a in Model.Artisans)
+      {
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card p-4 h-100" data-motion="slide-up">
+            <div class="d-flex align-items-start justify-content-between">
+              <div>
+                <div class="fw-bold">@a.DisplayName</div>
+                <div class="small-text">@a.Governorate.Name / @a.Neighborhood.Name</div>
+              </div>
+              <div class="text-end">
+                <div class="small-text">⭐ @a.Rating</div>
+                @if (a.AvailableNow)
+                {
+                  <span class="badge text-bg-success">متاح</span>
+                }
+              </div>
+            </div>
+
+            <div class="small-text mt-2" style="min-height:44px;">@a.About</div>
+
+            <div class="d-flex gap-2 mt-3">
+              <a class="btn btn-primary flex-grow-1" href="/Artisans/Profile/@a.Id">عرض الملف</a>
+              <a class="btn btn-outline-primary" href="/chat/@a.UserId" title="مراسلة">💬</a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

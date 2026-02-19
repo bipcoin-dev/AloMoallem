@@ -1,0 +1,37 @@
+@model List<AloMoallem.Web.Models.Profession>
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">إدارة المهن</h1>
+      <div class="small-text">إضافة/عرض قائمة المهن المتاحة في المنصة.</div>
+    </div>
+    <a class="btn btn-primary" href="/AdminProfessions/Create">➕ إضافة مهنة</a>
+  </div>
+
+  <div class="card p-3">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width:60px;">أيقونة</th>
+            <th>المهنة</th>
+            <th>وصف</th>
+            <th style="width:120px;">صفحة المهنة</th>
+          </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+          <tr>
+            <td class="fs-4">@p.Icon</td>
+            <td class="fw-bold">@p.Name</td>
+            <td class="text-muted">@p.Description</td>
+            <td><a class="btn btn-outline-primary btn-sm" asp-route="ProfessionPage" asp-route-id="@p.Id">فتح</a></td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

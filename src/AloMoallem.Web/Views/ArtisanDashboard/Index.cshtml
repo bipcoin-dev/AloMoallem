@@ -1,0 +1,48 @@
+@model AloMoallem.Web.Controllers.ArtisanDashboardVm
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">لوحة الحرفي</h1>
+      <div class="small-text">تحكم ببروفايلك وتواصلاتك</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" asp-controller="Messages" asp-action="Index">المحادثات</a>
+      <a class="btn btn-primary" asp-controller="ArtisanDashboard" asp-action="EditProfile">تعديل البروفايل</a>
+    </div>
+  </div>
+
+  <div class="row g-4" data-stagger="70">
+    <div class="col-12 col-md-4">
+      <div class="card p-4" data-motion="slide-up">
+        <div class="small-text">التقييم</div>
+        <div class="h3 mb-0">⭐ @Model.Rating</div>
+        <div class="small-text mt-1">@Model.CompletedJobs طلب مكتمل</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card p-4" data-motion="slide-up">
+        <div class="small-text">الرسائل</div>
+        <div class="h3 mb-0">@Model.Messages</div>
+        <div class="small-text mt-1">تابع محادثاتك داخل المنصة</div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card p-4" data-motion="slide-up">
+        <div class="small-text">الحالة</div>
+        <div class="h3 mb-0">@((Model.AvailableNow) ? "متاح" : "غير متاح")</div>
+        <form method="post" asp-action="ToggleAvailability" class="mt-2">
+          @Html.AntiForgeryToken()
+          <button class="btn btn-outline-primary w-100" type="submit">تبديل الحالة</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-4 mt-4" data-motion="slide-up">
+    <div class="fw-bold mb-2">رابط بروفايلك</div>
+    <a href="/Artisans/Profile/@Model.ProfileId" class="btn btn-primary" style="max-width:240px;">عرض ملفي</a>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+@model List<AloMoallem.Web.Models.ServiceRequestOffer>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">الطلبات الجديدة</h1>
+  <a class="btn btn-outline-secondary btn-sm" asp-controller="ArtisanDashboard" asp-action="Index">لوحة الحرفي</a>
+</div>
+
+@if (Model.Count == 0)
+{
+  <div class="alert alert-info border-0">ما في طلبات جديدة لمنطقتك حالياً.</div>
+}
+else
+{
+  <div class="row g-3">
+  @foreach (var o in Model)
+  {
+    var r = o.ServiceRequest;
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="fw-bold">@r.Profession.Name</div>
+            <span class="badge bg-warning-subtle text-warning-emphasis">Pending</span>
+          </div>
+          <div class="text-muted small mt-1">@r.Governorate.Name / @r.Neighborhood.Name • @r.CreatedAtUtc.ToLocalTime()</div>
+          <p class="mt-2 mb-2">@r.Description</p>
+
+          <div class="d-flex gap-2">
+            <form asp-action="Accept" method="post">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="offerId" value="@o.Id" />
+              <button class="btn btn-primary btn-sm">قبول</button>
+            </form>
+            <form asp-action="Reject" method="post">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="offerId" value="@o.Id" />
+              <button class="btn btn-outline-secondary btn-sm">رفض</button>
+            </form>
+          </div>
+
+          <div class="text-muted small mt-2">
+            إذا قبلت الطلب أولاً، رح يصير إلك وحدك والباقي يصير Expired.
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  </div>
+}

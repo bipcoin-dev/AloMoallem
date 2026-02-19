@@ -1,0 +1,108 @@
+@model List<AloMoallem.Web.Models.Profession>
+
+<section class="hero text-center" data-motion="fade">
+  <div class="container">
+    <h1 class="mb-3">معلّم — اعثر على الحرفي المناسب بسرعة</h1>
+    <p class="small-text mb-4">تصفح المهن وابحث عن مزود خدمة في منطقتك، ثم تواصل معه عبر المنصة أو الهاتف.</p>
+
+    <div class="hero-search position-relative">
+      <form method="get" action="/Search/Results" class="input-group">
+        <input type="text" name="Q" class="form-control form-control-lg" placeholder="ابحث عن كهربائي، سباك، دهان..." />
+        <button class="btn btn-primary btn-lg">بحث</button>
+      </form>
+      <ul id="autocomplete" class="list-group text-start mt-1" style="position:absolute;z-index:1000;width:100%;display:none;"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="container mt-5" id="professions">
+  @await Html.PartialAsync("Components/_SectionHeader", "تصفح المهن")
+  <div class="category-grid" data-stagger="70">
+    @foreach(var p in Model)
+    {
+      <div class="card p-4 text-center" data-motion="slide-up">
+        <div style="font-size:32px;">@p.Icon</div>
+        <h3 class="mt-3">@p.Name</h3>
+        <p class="small-text">استعرض مزودي خدمة @p.Name وتواصل معهم مباشرة.</p>
+        <a asp-route="ProfessionPage" asp-route-id="@p.Id" class="btn btn-outline-primary mt-2">استعرض</a>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="container mt-5 text-center" data-motion="slide-up">
+  <h2>كيف تعمل المنصة؟</h2>
+  <div class="row mt-4 g-3">
+    <div class="col-md-4">
+      <div class="card p-4 h-100">
+        <div class="h3 mb-1">1</div>
+        <div class="fw-bold">ابحث</div>
+        <div class="small-text">ابحث عن المهنة أو الخدمة.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4 h-100">
+        <div class="h3 mb-1">2</div>
+        <div class="fw-bold">اختر</div>
+        <div class="small-text">شاهد معلومات الحرفي كاملة.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4 h-100">
+        <div class="h3 mb-1">3</div>
+        <div class="fw-bold">تواصل</div>
+        <div class="small-text">راسل داخل المنصة أو تواصل هاتفياً.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container mt-5 text-center slide-up">
+  <h2 class="mb-4">آراء العملاء</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card p-4">
+        <p>"تواصلت مع حرفي خلال دقائق."</p>
+        <div class="small-text">— أحمد، حلب</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4">
+        <p>"واجهة بسيطة وسهلة."</p>
+        <div class="small-text">— سارة، الحمدانية</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-4">
+        <p>"معلومات الحرفي واضحة."</p>
+        <div class="small-text">— محمود، الباب</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container mt-5 text-center" data-motion="slide-up">
+  <h2>جاهز تبدأ؟</h2>
+  <a href="/Account/Register" class="btn btn-primary btn-lg mt-3">إنشاء حساب الآن</a>
+</section>
+
+<script>
+const input=document.querySelector('input[name="Q"]');
+const list=document.getElementById('autocomplete');
+
+input.addEventListener('input', async ()=>{
+ if(input.value.length<2){ list.style.display='none'; return;}
+ const res=await fetch('/api/professions');
+ const data=await res.json();
+ const filtered=data.filter(x=>x.name.includes(input.value));
+ list.innerHTML='';
+ filtered.slice(0,6).forEach(p=>{
+   const li=document.createElement('li');
+   li.className='list-group-item list-group-item-action';
+   li.textContent=p.name;
+   li.onclick=()=>{input.value=p.name; list.style.display='none';};
+   list.appendChild(li);
+ });
+ list.style.display='block';
+});
+</script>

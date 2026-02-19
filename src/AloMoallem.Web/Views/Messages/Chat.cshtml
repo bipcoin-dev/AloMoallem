@@ -1,0 +1,52 @@
+@model AloMoallem.Web.Models.Conversation
+@{
+    var me = User?.Identity?.Name ?? "";
+}
+
+<input type="hidden" id="convoId" value="@Model.Id" />
+<input type="hidden" id="meEmail" value="@me" />
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">الدردشة</h1>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-success-subtle text-success-emphasis">Realtime: <span id="rtStatus">…</span></span>
+    <a class="btn btn-outline-secondary btn-sm" asp-controller="Home" asp-action="Index">رجوع</a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body" style="max-height: 420px; overflow:auto;">
+        <div id="messages">
+        @if (Model.Messages.Count == 0)
+        {
+            <div class="text-muted">ابدأ المحادثة…</div>
+        }
+        else
+        {
+            foreach (var m in Model.Messages.OrderBy(x => x.SentAtUtc))
+            {
+                var mine = (m.SenderUser?.Email ?? "") == me;
+                <div class="mb-2 d-flex @(mine ? "justify-content-end" : "justify-content-start")">
+                    <div class="p-2 rounded-4 border bg-white" style="max-width: 85%;">
+                        <div class="small text-muted mb-1">@m.SenderUser?.Email</div>
+                        <div class="fw-semibold">@m.Text</div>
+                        <div class="small text-muted mt-1">@m.SentAtUtc.ToLocalTime()</div>
+                    </div>
+                </div>
+            }
+        }
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <input id="chatText" class="form-control" placeholder="اكتب رسالة…" maxlength="2000" />
+    <button id="sendBtn" class="btn btn-primary">إرسال</button>
+</div>
+
+<div class="text-muted small mt-2">
+    الآن الدردشة فورية عبر SignalR. إذا انقطع الاتصال رح يحاول يرجع تلقائياً.
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/%40microsoft/signalr@8.0.2/dist/browser/signalr.min.js"></script>
+<script src="~/js/chat.js"></script>

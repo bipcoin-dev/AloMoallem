@@ -1,0 +1,18 @@
+@use "../tokens" as t;
+
+.btn{
+  border-radius: t.$radius-sm;
+  padding:.65rem 1.2rem;
+  transition:t.$transition;
+  font-weight:600;
+}
+.btn-primary{
+  background:t.$color-primary;
+  border:none;
+  &:hover{ background:t.$color-primary-600; box-shadow:t.$shadow-sm; }
+}
+.btn-outline-primary{
+  border:1px solid t.$color-primary;
+  color:t.$color-primary;
+  &:hover{ background:t.$color-primary; color:t.$white; }
+}

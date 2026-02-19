@@ -1,0 +1,163 @@
+@model AloMoallem.Web.Controllers.CreateRequestVm
+@using AloMoallem.Web.Models
+@{
+  var profs = ViewBag.Professions as List<Profession> ?? new();
+}
+
+<div class="container mt-5" data-motion="fade">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">طلب خدمة جديد</h1>
+    <a class="btn btn-outline-primary btn-sm" asp-action="My">رجوع</a>
+  </div>
+
+  <div class="card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div class="small-text">خطوة <span id="stepNum">1</span> من 3</div>
+      <div class="progress" style="height:10px; width:45%; border-radius:999px;">
+        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 33%; background: var(--primary);"></div>
+      </div>
+    </div>
+
+    <form method="post" id="wizardForm">
+      @Html.AntiForgeryToken()
+
+      <!-- Step 1 -->
+      <div class="wizard-step" data-step="1" data-stagger="90">
+        <h2 class="h5 mb-3" data-motion="slide-up">اختيار المهنة</h2>
+        <div class="mb-3" data-motion="slide-up">
+          <label class="form-label">المهنة</label>
+          <select class="form-select" asp-for="ProfessionId" required>
+            <option value="">اختر المهنة</option>
+            @foreach (var p in profs)
+            {
+              <option value="@p.Id">@p.Name</option>
+            }
+          </select>
+          <div class="text-danger small">@Html.ValidationMessageFor(m=>m.ProfessionId)</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="wizard-step d-none" data-step="2" data-stagger="90">
+        <h2 class="h5 mb-3" data-motion="slide-up">تحديد المنطقة</h2>
+        <div class="row g-3">
+          <div class="col-12 col-md-6" data-motion="slide-up">
+            <label class="form-label">المحافظة</label>
+            <select class="form-select" asp-for="GovernorateId" id="govSelect" required></select>
+            <div class="text-danger small">@Html.ValidationMessageFor(m=>m.GovernorateId)</div>
+          </div>
+          <div class="col-12 col-md-6" data-motion="slide-up">
+            <label class="form-label">الحي / الريف</label>
+            <select class="form-select" asp-for="NeighborhoodId" id="neighSelect" required></select>
+            <div class="text-danger small">@Html.ValidationMessageFor(m=>m.NeighborhoodId)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="wizard-step d-none" data-step="3" data-stagger="90">
+        <h2 class="h5 mb-3" data-motion="slide-up">وصف الخدمة</h2>
+        <div class="mb-3" data-motion="slide-up">
+          <label class="form-label">وصف المشكلة / الخدمة</label>
+          <textarea class="form-control" asp-for="Description" rows="4" placeholder="اكتب التفاصيل..." required></textarea>
+          <div class="form-text">سينتشر الطلب لكل حرفيين نفس المهنة ضمن نفس المنطقة، وأول واحد يقبل يأخذه.</div>
+          <div class="text-danger small">@Html.ValidationMessageFor(m=>m.Description)</div>
+        </div>
+      </div>
+
+      <div class="text-danger small mb-2">@Html.ValidationSummary()</div>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-outline-primary" type="button" id="prevBtn" disabled>السابق</button>
+        <button class="btn btn-primary" type="button" id="nextBtn">التالي</button>
+        <button class="btn btn-primary d-none" type="submit" id="submitBtn">نشر الطلب</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(async function(){
+  // Location dropdowns
+  const gov = document.getElementById('govSelect');
+  const neigh = document.getElementById('neighSelect');
+
+  async function loadGovs(){
+    const res = await fetch('/api/locations/governorates');
+    const list = await res.json();
+    gov.innerHTML = '<option value="">اختر المحافظة</option>';
+    for(const g of list){
+      const opt=document.createElement('option');
+      opt.value=g.id; opt.textContent=g.name;
+      gov.appendChild(opt);
+    }
+    const serverGov = "@Model.GovernorateId";
+    if(serverGov && serverGov !== "0"){ gov.value = serverGov; await loadNeigh(serverGov); }
+  }
+  async function loadNeigh(govId){
+    neigh.innerHTML = '<option value="">جاري التحميل…</option>';
+    if(!govId){ neigh.innerHTML = '<option value="">اختر أولاً المحافظة</option>'; return; }
+    const res = await fetch(`/api/locations/neighborhoods?governorateId=${govId}`);
+    const list = await res.json();
+    neigh.innerHTML = '<option value="">اختر الحي / الريف</option>';
+    for(const n of list){
+      const opt=document.createElement('option');
+      opt.value=n.id; opt.textContent=n.name;
+      neigh.appendChild(opt);
+    }
+    const serverNeigh = "@Model.NeighborhoodId";
+    if(serverNeigh && serverNeigh !== "0"){ neigh.value = serverNeigh; }
+  }
+  gov.addEventListener('change', ()=> loadNeigh(gov.value));
+  await loadGovs();
+
+  // Wizard logic
+  const steps = Array.from(document.querySelectorAll('.wizard-step'));
+  const stepNum = document.getElementById('stepNum');
+  const bar = document.getElementById('progressBar');
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  const submit = document.getElementById('submitBtn');
+
+  let current = 1;
+
+  function show(step){
+    current = step;
+    steps.forEach(s=> s.classList.toggle('d-none', parseInt(s.dataset.step,10) !== step));
+    stepNum.textContent = step;
+    bar.style.width = (step * 33.33) + '%';
+    prev.disabled = step === 1;
+    next.classList.toggle('d-none', step === 3);
+    submit.classList.toggle('d-none', step !== 3);
+
+    if(typeof showToast === 'function' && step === 2){
+      // no toast
+    }
+  }
+
+  function validateStep(step){
+    const el = steps.find(s=>parseInt(s.dataset.step,10)===step);
+    const required = Array.from(el.querySelectorAll('[required]'));
+    let ok = true;
+    required.forEach(inp=>{
+      if(!inp.value){
+        inp.classList.add('is-invalid');
+        ok = false;
+      } else {
+        inp.classList.remove('is-invalid');
+      }
+    });
+    if(!ok && typeof showToast === 'function') showToast('يرجى تعبئة الحقول المطلوبة');
+    return ok;
+  }
+
+  prev.addEventListener('click', ()=> show(Math.max(1,current-1)));
+  next.addEventListener('click', ()=>{
+    if(!validateStep(current)) return;
+    show(Math.min(3,current+1));
+    if(window.lucide) lucide.createIcons();
+  });
+
+  show(1);
+})();
+</script>

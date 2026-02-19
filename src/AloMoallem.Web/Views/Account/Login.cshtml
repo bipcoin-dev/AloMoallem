@@ -1,0 +1,31 @@
+@model AloMoallem.Web.Controllers.LoginVm
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
+  <div class="card p-4" style="max-width:450px;width:100%;">
+    <h2 class="text-center mb-4">تسجيل الدخول</h2>
+
+    <form method="post">
+      @Html.AntiForgeryToken()
+
+      <div class="mb-3">
+        <label class="form-label">الإيميل</label>
+        <input class="form-control" asp-for="Email"/>
+        <span class="text-danger small">@Html.ValidationMessageFor(m=>m.Email)</span>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" class="form-control" asp-for="Password"/>
+        <span class="text-danger small">@Html.ValidationMessageFor(m=>m.Password)</span>
+      </div>
+
+      <div class="text-danger small mb-2">@Html.ValidationSummary()</div>
+
+      <button class="btn btn-primary w-100">دخول</button>
+
+      <div class="text-center mt-3">
+        <a href="/Account/ForgotPassword" class="small-text">نسيت كلمة المرور؟</a>
+      </div>
+    </form>
+  </div>
+</div>

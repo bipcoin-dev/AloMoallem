@@ -1,0 +1,64 @@
+@model AloMoallem.Web.Controllers.EditArtisanProfileVm
+@using AloMoallem.Web.Models
+@{
+    var profs = ViewBag.Professions as List<Profession> ?? new();
+}
+
+<h1 class="h4 mb-3">تعديل البروفايل</h1>
+
+<form method="post" enctype="multipart/form-data" class="card border-0 shadow-sm p-3" style="max-width:900px;">
+  @Html.AntiForgeryToken()
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <label class="form-label">الاسم المعروض</label>
+      <input class="form-control" asp-for="DisplayName" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">المدينة</label>
+      <input class="form-control" asp-for="City" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">رقم تواصل</label>
+      <input class="form-control" asp-for="PhoneNumberPublic" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">المهن (اختر واحدة أو أكثر)</label>
+      <div class="p-2 border rounded-4" style="max-height:220px; overflow:auto; background:var(--white);">
+        <div class="row g-2">
+          @foreach (var p in profs)
+          {
+            var isChecked = (Model.ProfessionIds?.Contains(p.Id) ?? false);
+            <div class="col-12 col-md-6">
+              <label class="chip-check w-100">
+                <input type="checkbox" name="ProfessionIds" value="@p.Id" @(isChecked ? "checked" : "") />
+                <span class="chip">@p.Name</span>
+              </label>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="text-danger small mt-1">@Html.ValidationMessageFor(m => m.ProfessionIds)</div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">نبذة</label>
+      <textarea class="form-control" asp-for="About" rows="3"></textarea>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <label class="form-label">رسوم زيارة</label>
+      <input class="form-control" asp-for="ServiceCallFee" type="number" step="1" />
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">سعر بالساعة</label>
+      <input class="form-control" asp-for="HourlyRate" type="number" step="1" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">صورة شخصية (Avatar)</label>
+      <input class="form-control" type="file" name="avatar" accept="image/*" />
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3">حفظ</button>
+  <a class="btn btn-outline-secondary mt-3" asp-action="Index">رجوع</a>
+</form>

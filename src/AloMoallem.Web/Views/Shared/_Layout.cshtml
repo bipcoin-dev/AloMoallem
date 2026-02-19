@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>معلّم</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="~/css/site.css" rel="stylesheet" />
+
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+
+<body class="bg-app">
+<header class="app-nav shadow-sm">
+    <div class="container py-2 d-flex align-items-center justify-content-between gap-3">
+        <a class="d-flex align-items-center gap-2 text-decoration-none" asp-controller="Home" asp-action="Index">
+            <img src="~/img/brand-logo.png" alt="logo" style="width:34px;height:34px" />
+            <span class="fw-bold text-white">مُعلّم</span>
+        </a>
+
+        <form class="d-none d-md-flex flex-grow-1 mx-3" method="get" action="/">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-0">🔎</span>
+                <input class="form-control border-0" name="q" placeholder="ابحث عن مهنة أو خدمة" />
+                <button class="btn btn-primary">بحث</button>
+            </div>
+        </form>
+
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-outline-light btn-sm d-none d-md-inline-flex align-items-center gap-1" asp-controller="Home" asp-action="Index">
+                <i data-lucide="home" style="width:16px;height:16px"></i> الرئيسية
+            </a>
+            <a class="btn btn-outline-light btn-sm d-none d-md-inline-flex align-items-center gap-1" href="/#professions">
+                <i data-lucide="grid-3x3" style="width:16px;height:16px"></i> تصفح المهن
+            </a>
+            <span class="nav-pill d-none d-lg-inline-flex" id="navClock">
+                <i data-lucide="clock" style="width:16px;height:16px"></i>
+                <span id="clockText">--:--</span>
+            </span>
+            <span class="nav-pill d-none d-lg-inline-flex" id="navDate">
+                <i data-lucide="calendar" style="width:16px;height:16px"></i>
+                <span id="dateText">--/--/----</span>
+            </span>
+
+            @if (User?.Identity?.IsAuthenticated ?? false)
+            {
+                <span class="text-white-50 small d-none d-lg-inline">مرحباً: @User.Identity!.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-light btn-sm">تسجيل خروج</button>
+                </form>
+                @if (User.IsInRole("Customer"))
+                {
+                    <a class="btn btn-outline-light btn-sm" asp-controller="Requests" asp-action="My">طلباتي</a>
+                    <a class="btn btn-primary btn-sm" asp-controller="Requests" asp-action="Create">طلب خدمة</a>
+                }
+                @if (User.IsInRole("Artisan"))
+                {
+                    <a class="btn btn-outline-light btn-sm" asp-controller="ArtisanRequests" asp-action="Inbox">طلبات جديدة</a>
+                    <a class="btn btn-outline-light btn-sm" asp-controller="ArtisanDashboard" asp-action="Index">لوحة الحرفي</a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="btn btn-outline-light btn-sm" asp-controller="AdminDashboard" asp-action="Index">لوحة الأدمن</a>
+                }
+            }
+            else
+            {
+                <a class="btn btn-light btn-sm text-dark" asp-controller="Account" asp-action="Login">تسجيل دخول</a>
+                <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">إنشاء حساب</a>
+            }
+        </div>
+    </div>
+</header>
+
+<div class="motivation-bar">
+  <div class="container py-2 d-flex align-items-center justify-content-center">
+    <span class="motivation-text" id="motivationText">جاهز تنجز اليوم؟ خطوة صغيرة كل يوم تصنع فرق كبير.</span>
+  </div>
+</div>
+
+<main class="container py-4">
+    @RenderBody()
+</main>
+
+<footer class="py-4">
+    <div class="container text-center text-muted small">
+        © منصة مُعلّم — نسخة تجريبية
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div id="toast" class="toast-modern"></div>
+
+<script>
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function darkToggle(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('darkMode',document.body.classList.contains('dark'));
+}
+
+if(localStorage.getItem('darkMode')==='true'){
+  document.body.classList.add('dark');
+}
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/%40microsoft/signalr@8.0.2/dist/browser/signalr.min.js"></script>
+<script src="~/js/notifications.js"></script>
+<script src="~/js/motion.js"></script>
+<script> if(window.lucide){ lucide.createIcons(); } </script>
+
+<script>
+(function(){
+  const clockEl = document.getElementById('clockText');
+  const dateEl  = document.getElementById('dateText');
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function tick(){
+    const d = new Date();
+    if(clockEl) clockEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    if(dateEl){
+      // Gregorian date in Arabic-RTL friendly format: YYYY/MM/DD
+      dateEl.textContent = d.getFullYear() + '/' + pad(d.getMonth()+1) + '/' + pad(d.getDate());
+    }
+  }
+  tick();
+  setInterval(tick, 1000 * 10);
+
+  const lines = [
+    "رزقك مكتوب… خذ بالأسباب واشتغل بإتقان.",
+    "الزبون يتذكر الاحترام قبل الشغل—خلّك محترف دائمًا.",
+    "كل تقييم ممتاز يبدأ بابتسامة وكلمة طيبة.",
+    "رتّب وقتك… وإنجازك اليوم هو سمعتك بكرة.",
+    "جودة شغلك هي إعلانك الأقوى."
+  ];
+  const textEl = document.getElementById('motivationText');
+  if(textEl){
+    let i = 0;
+    setInterval(()=>{
+      i = (i+1) % lines.length;
+      textEl.textContent = lines[i];
+    }, 4500);
+  }
+})();
+</script>
+
+</body>
+
+
+</html>

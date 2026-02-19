@@ -1,0 +1,99 @@
+@model AloMoallem.Web.Controllers.AdminDashboardVm
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="h4 mb-1">لوحة الأدمن</h1>
+    <div class="text-muted small">Dashboard تجريبي — بدون بيانات مالية حقيقية</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/AdminProfessions">إدارة المهن</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-3">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">إجمالي المستخدمين</div>
+      <div class="h3 mb-0">@Model.TotalUsers</div>
+    </div></div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">عدد الحرفيين</div>
+      <div class="h3 mb-0">@Model.TotalArtisans</div>
+    </div></div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">المهن</div>
+      <div class="h3 mb-0">@Model.TotalProfessions</div>
+    </div></div>
+  </div>
+  <div class="col-12 col-md-3">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">الرسائل</div>
+      <div class="h3 mb-0">@Model.TotalMessages</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="fw-bold">مراجعة توثيق الحرفيين</div>
+      <span class="text-muted small">(@Model.PendingVerification.Count) بانتظار</span>
+    </div>
+
+    @if (Model.PendingVerification.Count == 0)
+    {
+      <div class="text-muted">ما في طلبات توثيق حالياً.</div>
+    }
+    else
+    {
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>الحرفي</th>
+              <th>المهنة</th>
+              <th>المدينة</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          @foreach (var a in Model.PendingVerification)
+          {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="@a.PhotoUrl" class="rounded-circle border" style="width:40px;height:40px;object-fit:cover;" />
+                  <div>
+                    <div class="fw-bold">@a.DisplayName</div>
+                    <div class="text-muted small">@a.User?.Email</div>
+                  </div>
+                </div>
+              </td>
+              <td>@a.Profession.Name</td>
+              <td>@a.Governorate.Name / @a.Neighborhood.Name</td>
+              <td class="text-end">
+                <form asp-action="Verify" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <input type="hidden" name="artisanProfileId" value="@a.Id" />
+                  <input type="hidden" name="isVerified" value="true" />
+                  <button class="btn btn-sm btn-primary">توثيق</button>
+                </form>
+                <form asp-action="Verify" method="post" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <input type="hidden" name="artisanProfileId" value="@a.Id" />
+                  <input type="hidden" name="isVerified" value="false" />
+                  <button class="btn btn-sm btn-outline-secondary">رفض</button>
+                </form>
+              </td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,41 @@
+@model List<AloMoallem.Web.Models.ServiceRequest>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 mb-0">طلباتي</h1>
+  <a class="btn btn-primary btn-sm" asp-action="Create">طلب خدمة جديد</a>
+</div>
+
+@if (Model.Count == 0)
+{
+  <div class="alert alert-info border-0">ما عندك طلبات بعد. اضغط "طلب خدمة جديد".</div>
+}
+else
+{
+  <div class="row g-3">
+  @foreach (var r in Model)
+  {
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="fw-bold">@r.Profession.Name</div>
+            <span class="badge text-bg-secondary">@r.Status</span>
+          </div>
+          <div class="text-muted small mt-1">@r.Governorate.Name / @r.Neighborhood.Name • @r.CreatedAtUtc.ToLocalTime()</div>
+          <p class="mt-2 mb-2">@r.Description</p>
+
+          @if (r.AssignedArtisanUserId is null)
+          {
+            <div class="text-muted small">بانتظار أول حرفي يقبل الطلب ضمن نفس المنطقة.</div>
+          }
+          else
+          {
+            <div class="text-muted small">تم قبول الطلب من: <strong>@(r.AssignedArtisanUser?.Email ?? "حرفي")</strong></div>
+            <a class="btn btn-outline-primary btn-sm mt-2" href="/chat/@r.AssignedArtisanUserId">فتح الدردشة</a>
+          }
+        </div>
+      </div>
+    </div>
+  }
+  </div>
+}
